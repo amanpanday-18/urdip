@@ -1,9 +1,19 @@
 # Kisan Mitra (URDIP) — App Plan: Screens First, Then AI
 
-## Look and feel
-- Clean app layout (like Plantix and Yuka) with earthy colours: leaf green, soil brown, cream.
-- Built for phones first, with 4 buttons at the bottom: Home, Agro, Schemes, Scanner.
-- Big cards and big buttons. A switch at the top to change between English and Hindi.
+## Look and feel: "Clean App + Earthy Colours"
+
+Inspiration (open these to see the style):
+- Plantix (https://plantix.net): photo-first crop doctor; big camera button, clear result card with the disease name and treatment. Used for the Agro screens.
+- Yuka (https://yuka.io): product score shown as a big coloured circle (green/orange/red), simple ingredient list. Used for the Scanner result.
+- myScheme (https://www.myscheme.gov.in): step-by-step eligibility questions, then scheme cards. Used for the Schemes form and results.
+- Open Food Facts (https://world.openfoodfacts.org): easy-to-read ingredient explanations.
+
+What it will look like:
+- Colours: cream background, deep leaf green for main buttons, soil brown and turmeric yellow for highlights; red/orange/green only for safety scores.
+- Phone-first, with 4 buttons at the bottom: Home, Agro, Schemes, Scanner.
+- Home: greeting, 3 big coloured feature cards with illustrations, and recent activity.
+- Big rounded cards, large icons, big text, and an English/Hindi switch at the top.
+- On computers the same design sits in a centred layout with a side menu.
 
 ## 1. Agro: Plant Doctor
 - Take a photo with the camera or upload one from the gallery.

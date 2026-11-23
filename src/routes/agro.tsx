@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Camera, FlaskConical, Leaf, Loader2, ShieldCheck, Sprout } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { classifyPlant, preloadPlantModel } from "@/lib/plant-model";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { useLang } from "@/lib/i18n";
 import { diagnosePlant, type PlantResult } from "@/lib/ai.functions";
@@ -28,10 +29,17 @@ function Agro() {
   const [err, setErr] = useState<string | null>(null);
   const [res, setRes] = useState<PlantResult | null>(null);
   const [crop, setCrop] = useState("");
+  const [model, setModel] = useState<{ label: string; confidence: number } | null>(null);
+  useEffect(() => { preloadPlantModel(); }, []);
   const analyse = async () => {
     if (!img) return;
     setLoading(true); setErr(null);
-    try { setRes(await diagnose({ data: { image: img, lang, ...(crop ? { crop } : {}) } })); }
+    try {
+      let m: { label: string; confidence: number } | null = null;
+      try { m = await classifyPlant(img); } catch (e) { console.error("Local model failed", e); }
+      setModel(m);
+      setRes(await diagnose({ data: { image: img, lang, ...(crop ? { crop } : {}), ...(m ? { model: m } : {}) } }));
+    }
     catch (e) { setErr(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); }
   };
@@ -62,6 +70,7 @@ function Agro() {
         </button>
       )}
       {err && <p className="rounded-2xl bg-danger/10 p-4 text-danger">{err}</p>}
+      {res && model && <p className="rounded-2xl bg-primary/10 p-3 text-sm">{t("URDIP trained model", "URDIP प्रशिक्षित मॉडल")}: <b>{model.label}</b> · {model.confidence}%</p>}
       {res && (res.isPlant ? <Result r={res} /> : <p className="rounded-2xl bg-warn/10 p-4">{t("This doesn't look like a plant. Please take a photo of a leaf or crop.", "यह पौधा नहीं लगता। कृपया पत्ती या फसल की फोटो लें।")}</p>)}
       {res && <p className="text-center text-xs text-muted-foreground">{t("AI advice — confirm with your local agriculture officer before spraying.", "AI सलाह — छिड़काव से पहले स्थानीय कृषि अधिकारी से पुष्टि करें।")}</p>}
     </div>

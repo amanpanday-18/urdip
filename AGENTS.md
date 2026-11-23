@@ -34,3 +34,4 @@ use the editor.
 - Bilingual text uses useLang().t(en, hi) from src/lib/i18n.tsx; why: simple inline EN/HI without a library.
 - AI calls live in src/lib/ai.functions.ts (server fns) using helper src/lib/ai.server.ts with JSON replies; why: one place for prompts and error handling.
 - Barcode lookup uses Open Food Facts then AI explanation; why: free product database with ingredients.
+- Plant Doctor runs the user's trained 38-class ONNX model in the browser (onnxruntime-web, src/lib/plant-model.ts) and passes its label to the AI for medicines; why: free, accurate, no hosting.

@@ -13,11 +13,11 @@ export type PlantResult = {
 };
 
 export const diagnosePlant = createServerFn({ method: "POST" })
-  .validator((d) => z.object({ image: Img, lang: Lang, crop: z.string().max(40).optional() }).parse(d))
+  .validator((d) => z.object({ image: Img, lang: Lang, crop: z.string().max(40).optional(), model: z.object({ label: z.string().max(120), confidence: z.number() }).optional() }).parse(d))
   .handler(async ({ data }) =>
     askJson<PlantResult>(
       `You are an expert Indian agronomist and plant pathologist (ICAR/KVK level). Identify the plant in the photo and diagnose any disease, pest or nutrient deficiency. Reason step by step from visible signs: lesion shape, colour, halo, concentric rings, powdery/downy growth, pustules, leaf curl, mosaic, chlorosis pattern (old vs new leaves), insects or webbing. Distinguish fungal, bacterial, viral, pest and deficiency causes. If the photo is blurry, too far or unclear, lower confidence honestly (below 50). Suggest medicines commonly sold in India with doses per litre of water. ${langRule(data.lang)}`,
-      `Return JSON: {"isPlant":bool,"plant":string,"healthy":bool,"disease":string (or "Healthy"),"scientificName":string (pathogen, empty if healthy),"confidence":number 0-100,"symptoms":string[],"cause":string,"medicines":[{"name":string,"dose":string,"howToUse":string}],"organic":string[],"prevention":string[]}. If the image is not a plant set isPlant false.${data.crop ? ` The farmer says this crop is: ${data.crop}. Use this unless the photo clearly shows otherwise.` : ""}`,
+      `Return JSON: {"isPlant":bool,"plant":string,"healthy":bool,"disease":string (or "Healthy"),"scientificName":string (pathogen, empty if healthy),"confidence":number 0-100,"symptoms":string[],"cause":string,"medicines":[{"name":string,"dose":string,"howToUse":string}],"organic":string[],"prevention":string[]}. If the image is not a plant set isPlant false.${data.crop ? ` The farmer says this crop is: ${data.crop}. Use this unless the photo clearly shows otherwise.` : ""}${data.model ? ` A specialist image model trained on 54,000 leaf photos (PlantVillage, 38 classes: apple, blueberry, cherry, corn, grape, orange, peach, bell pepper, potato, raspberry, soybean, squash, strawberry, tomato) predicts: "${data.model.label}" with ${data.model.confidence}% confidence. If the plant is one of those crops and the confidence is above 70, trust this diagnosis and use it as the disease name. Otherwise rely on your own analysis.` : ""}`,
       data.image,
     ));
 

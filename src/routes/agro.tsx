@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, FlaskConical, Leaf, Loader2, ShieldCheck, Sprout } from "lucide-react";
 import { useState } from "react";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { useLang } from "@/lib/i18n";
+import { diagnosePlant, type PlantResult } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/agro")({
   head: () => ({
     meta: [
-      { title: "Plant Doctor — Kisan Mitra" },
+      { title: "Plant Doctor — URDIP" },
       { name: "description", content: "Take a photo of your plant to identify it, diagnose the disease and get medicine suggestions." },
-      { property: "og:title", content: "Plant Doctor — Kisan Mitra" },
+      { property: "og:title", content: "Plant Doctor — URDIP" },
       { property: "og:description", content: "Photo-based plant disease diagnosis with treatment advice." },
     ],
   }),
@@ -17,58 +19,60 @@ export const Route = createFileRoute("/agro")({
 });
 
 function Agro() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const diagnose = useServerFn(diagnosePlant);
   const [img, setImg] = useState<string | null>(null);
-  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
-  const analyse = () => { setState("loading"); setTimeout(() => setState("done"), 1500); };
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [res, setRes] = useState<PlantResult | null>(null);
+  const analyse = async () => {
+    if (!img) return;
+    setLoading(true); setErr(null);
+    try { setRes(await diagnose({ data: { image: img, lang } })); }
+    catch (e) { setErr(e instanceof Error ? e.message : "Error"); }
+    finally { setLoading(false); }
+  };
   return (
     <div className="space-y-5">
       <h1 className="text-3xl font-bold">{t("Plant Doctor", "पौधा डॉक्टर")}</h1>
-      <PhotoPicker image={img} onPick={(u) => { setImg(u); setState("idle"); }} hint={t("Take a clear photo of the affected leaf", "प्रभावित पत्ती की साफ फोटो लें")} />
-      {img && state !== "done" && (
-        <button onClick={analyse} disabled={state === "loading"} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-soil py-4 text-lg font-semibold text-soil-foreground">
-          {state === "loading" ? <><Loader2 className="h-5 w-5 animate-spin" /> {t("Analysing…", "जांच हो रही है…")}</> : t("Diagnose plant", "पौधे की जांच करें")}
+      <PhotoPicker image={img} onPick={(u) => { setImg(u); setRes(null); setErr(null); }} hint={t("Take a clear photo of the affected leaf", "प्रभावित पत्ती की साफ फोटो लें")} />
+      {img && !res && (
+        <button onClick={analyse} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-soil py-4 text-lg font-semibold text-soil-foreground">
+          {loading ? <><Loader2 className="h-5 w-5 animate-spin" /> {t("Analysing…", "जांच हो रही है…")}</> : t("Diagnose plant", "पौधे की जांच करें")}
         </button>
       )}
-      {state === "done" && <Result />}
-      <p className="text-center text-xs text-muted-foreground">{t("Sample result shown — AI analysis coming next.", "नमूना परिणाम — AI जांच जल्द आ रही है।")}</p>
+      {err && <p className="rounded-2xl bg-danger/10 p-4 text-danger">{err}</p>}
+      {res && (res.isPlant ? <Result r={res} /> : <p className="rounded-2xl bg-warn/10 p-4">{t("This doesn't look like a plant. Please take a photo of a leaf or crop.", "यह पौधा नहीं लगता। कृपया पत्ती या फसल की फोटो लें।")}</p>)}
+      {res && <p className="text-center text-xs text-muted-foreground">{t("AI advice — confirm with your local agriculture officer before spraying.", "AI सलाह — छिड़काव से पहले स्थानीय कृषि अधिकारी से पुष्टि करें।")}</p>}
     </div>
   );
 }
 
-function Result() {
+function List({ items }: { items: string[] }) {
+  return <ul className="list-disc space-y-1 pl-5">{items.map((i) => <li key={i}>{i}</li>)}</ul>;
+}
+
+function Result({ r }: { r: PlantResult }) {
   const { t } = useLang();
   return (
     <div className="space-y-4">
       <div className="rounded-3xl bg-card p-5 shadow-sm">
-        <div className="flex items-center gap-2 text-muted-foreground"><Sprout className="h-4 w-4" /> {t("Plant", "पौधा")}: <b className="text-foreground">{t("Tomato", "टमाटर")}</b></div>
+        <div className="flex items-center gap-2 text-muted-foreground"><Sprout className="h-4 w-4" /> {t("Plant", "पौधा")}: <b className="text-foreground">{r.plant}</b></div>
         <div className="mt-3 flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm text-danger font-semibold">{t("Disease detected", "रोग मिला")}</p>
-            <h2 className="text-2xl font-bold">{t("Early Blight", "अगेती झुलसा")}</h2>
-            <p className="text-sm italic text-muted-foreground">Alternaria solani</p>
+            <p className={`text-sm font-semibold ${r.healthy ? "text-safe" : "text-danger"}`}>{r.healthy ? t("Looks healthy", "स्वस्थ है") : t("Disease detected", "रोग मिला")}</p>
+            <h2 className="text-2xl font-bold">{r.disease}</h2>
+            {r.scientificName && <p className="text-sm italic text-muted-foreground">{r.scientificName}</p>}
           </div>
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">92%</span>
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{Math.round(r.confidence)}%</span>
         </div>
       </div>
-      <Section icon={AlertTriangle} title={t("Symptoms & cause", "लक्षण और कारण")}>
-        <ul className="list-disc space-y-1 pl-5">
-          <li>{t("Brown spots with rings on older leaves", "पुरानी पत्तियों पर छल्लेदार भूरे धब्बे")}</li>
-          <li>{t("Leaves turn yellow and fall", "पत्तियां पीली होकर गिरती हैं")}</li>
-          <li>{t("Fungus spreads in warm, wet weather", "गर्म और नम मौसम में फफूंद फैलती है")}</li>
-        </ul>
-      </Section>
-      <Section icon={FlaskConical} title={t("Medicines", "दवाइयां")}>
-        {[["Mancozeb 75% WP", "2.5 g / L", t("Spray every 7–10 days", "हर 7–10 दिन में छिड़काव")], ["Chlorothalonil 75% WP", "2 g / L", t("Spray on both sides of leaves", "पत्तियों के दोनों ओर छिड़कें")]].map(([n, d, h]) => (
-          <div key={n} className="mb-2 rounded-2xl bg-muted p-3"><b>{n}</b> · {d}<p className="text-sm text-muted-foreground">{h}</p></div>
-        ))}
-      </Section>
-      <Section icon={Leaf} title={t("Organic remedies", "जैविक उपाय")}>
-        <ul className="list-disc space-y-1 pl-5"><li>{t("Neem oil 5 ml/L spray", "नीम तेल 5 ml/L छिड़काव")}</li><li>{t("Remove and burn infected leaves", "संक्रमित पत्तियां हटाकर जलाएं")}</li></ul>
-      </Section>
-      <Section icon={ShieldCheck} title={t("Prevention", "रोकथाम")}>
-        <ul className="list-disc space-y-1 pl-5"><li>{t("Rotate crops every season", "हर मौसम फसल चक्र अपनाएं")}</li><li>{t("Water at the base, not on leaves", "पत्तियों पर नहीं, जड़ में पानी दें")}</li></ul>
-      </Section>
+      {(r.symptoms.length > 0 || r.cause) && <Section icon={AlertTriangle} title={t("Symptoms & cause", "लक्षण और कारण")}><List items={r.symptoms} />{r.cause && <p className="mt-2 text-muted-foreground">{r.cause}</p>}</Section>}
+      {r.medicines.length > 0 && <Section icon={FlaskConical} title={t("Medicines", "दवाइयां")}>
+        {r.medicines.map((m) => <div key={m.name} className="mb-2 rounded-2xl bg-muted p-3"><b>{m.name}</b> · {m.dose}<p className="text-sm text-muted-foreground">{m.howToUse}</p></div>)}
+      </Section>}
+      {r.organic.length > 0 && <Section icon={Leaf} title={t("Organic remedies", "जैविक उपाय")}><List items={r.organic} /></Section>}
+      {r.prevention.length > 0 && <Section icon={ShieldCheck} title={t("Prevention", "रोकथाम")}><List items={r.prevention} /></Section>}
     </div>
   );
 }

@@ -32,3 +32,5 @@ use the editor.
 ## Project rules
 - Shared app shell (nav, language toggle) lives in src/components/AppShell.tsx wrapped in __root; why: one layout for all pages.
 - Bilingual text uses useLang().t(en, hi) from src/lib/i18n.tsx; why: simple inline EN/HI without a library.
+- AI calls live in src/lib/ai.functions.ts (server fns) using helper src/lib/ai.server.ts with JSON replies; why: one place for prompts and error handling.
+- Barcode lookup uses Open Food Facts then AI explanation; why: free product database with ingredients.

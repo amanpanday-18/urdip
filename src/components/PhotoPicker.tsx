@@ -1,12 +1,13 @@
 import { Camera, ImagePlus } from "lucide-react";
 import { useRef } from "react";
 import { useLang } from "@/lib/i18n";
+import { fileToDataUrl } from "@/lib/image";
 
-export function PhotoPicker({ image, onPick, hint }: { image: string | null; onPick: (url: string) => void; hint: string }) {
+export function PhotoPicker({ image, onPick, hint }: { image: string | null; onPick: (url: string, file: File) => void; hint: string }) {
   const cam = useRef<HTMLInputElement>(null);
   const gal = useRef<HTMLInputElement>(null);
   const { t } = useLang();
-  const handle = (f?: File) => { if (f) onPick(URL.createObjectURL(f)); };
+  const handle = async (f?: File) => { if (f) onPick(await fileToDataUrl(f), f); };
   return (
     <div className="rounded-3xl border-2 border-dashed border-primary/40 bg-card p-5 text-center">
       {image ? <img src={image} alt="Selected" className="mx-auto mb-4 max-h-64 rounded-2xl object-cover" />

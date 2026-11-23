@@ -5,9 +5,9 @@ import { useLang } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Kisan Mitra — Farm, Schemes & Food Safety" },
+      { title: "URDIP — Farm, Schemes & Food Safety" },
       { name: "description", content: "Diagnose plant diseases, find government schemes you qualify for, and check if food products are safe." },
-      { property: "og:title", content: "Kisan Mitra — Farm, Schemes & Food Safety" },
+      { property: "og:title", content: "URDIP — Farm, Schemes & Food Safety" },
       { property: "og:description", content: "Plant doctor, scheme finder and product safety scanner in one app." },
     ],
   }),

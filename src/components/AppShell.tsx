@@ -57,7 +57,7 @@ function Brand() {
   return (
     <Link to="/" className="flex items-center gap-2">
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Sprout className="h-5 w-5" /></span>
-      <span className="font-display text-xl font-bold">Kisan Mitra</span>
+      <span className="font-display text-xl font-bold">URDIP</span>
     </Link>
   );
 }

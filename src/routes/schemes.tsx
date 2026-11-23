@@ -1,15 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ExternalLink, FileText, Phone } from "lucide-react";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Loader2 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { matchSchemes, type Scheme, type SchemeResult } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/schemes")({
   head: () => ({
     meta: [
-      { title: "Government Schemes Finder — Kisan Mitra" },
+      { title: "Government Schemes Finder — URDIP" },
       { name: "description", content: "Answer a few questions to find schemes, pensions and scholarships you are eligible for, and how to apply." },
-      { property: "og:title", content: "Government Schemes Finder — Kisan Mitra" },
+      { property: "og:title", content: "Government Schemes Finder — URDIP" },
       { property: "og:description", content: "Find schemes, pensions and scholarships you qualify for." },
     ],
   }),
@@ -23,27 +26,21 @@ const steps: Field[][] = [
   [{ key: "income", en: "Yearly family income", hi: "वार्षिक पारिवारिक आय", options: ["< ₹1 lakh", "₹1–2.5 lakh", "₹2.5–8 lakh", "> ₹8 lakh"] }, { key: "job", en: "Occupation", hi: "व्यवसाय", options: ["Farmer", "Student", "Worker", "Self-employed", "Unemployed"] }, { key: "disability", en: "Disability", hi: "दिव्यांगता", options: ["No", "Yes"] }],
 ];
 
-type Scheme = { name: string; benefit: string; why: string; site: string; helpline: string; docs: string[]; steps: string[] };
-const results: Record<string, Scheme[]> = {
-  schemes: [
-    { name: "PM-KISAN", benefit: "₹6,000 per year in 3 instalments", why: "You are a farmer with cultivable land", site: "https://pmkisan.gov.in", helpline: "155261", docs: ["Aadhaar", "Land record", "Bank passbook"], steps: ["Visit pmkisan.gov.in", "Click 'New Farmer Registration'", "Enter Aadhaar & land details", "Submit and track status"] },
-    { name: "PM Fasal Bima Yojana", benefit: "Crop insurance at 1.5–2% premium", why: "Farmers growing notified crops", site: "https://pmfby.gov.in", helpline: "14447", docs: ["Aadhaar", "Land record", "Sowing certificate"], steps: ["Visit bank/CSC or pmfby.gov.in", "Fill the proposal form", "Pay premium before cut-off"] },
-  ],
-  pensions: [
-    { name: "PM Kisan Maandhan", benefit: "₹3,000/month pension after 60", why: "Farmers aged 18–40", site: "https://maandhan.in", helpline: "1800-267-6888", docs: ["Aadhaar", "Bank account"], steps: ["Visit nearest CSC", "Register with Aadhaar", "Set up auto-debit contribution"] },
-  ],
-  scholarships: [
-    { name: "National Scholarship Portal (Post-Matric)", benefit: "Tuition + maintenance allowance", why: "Income below ₹2.5 lakh", site: "https://scholarships.gov.in", helpline: "0120-6619540", docs: ["Aadhaar", "Income certificate", "Marksheet"], steps: ["Register on scholarships.gov.in", "Fill application", "Upload documents", "Institute verification"] },
-  ],
-};
-
 function Schemes() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const match = useServerFn(matchSchemes);
+  const [results, setResults] = useState<SchemeResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const [step, setStep] = useState(0);
+  const submit = async () => {
+    setLoading(true); setErr(null);
+    try { setResults(await match({ data: { profile: data, lang } })); setStep(steps.length); }
+    catch (e) { setErr(e instanceof Error ? e.message : "Error"); } finally { setLoading(false); }
+  };
   const [data, setData] = useState<Record<string, string>>({});
   const [tab, setTab] = useState("schemes");
   const [open, setOpen] = useState<Scheme | null>(null);
-  const done = step >= steps.length;
 
   if (open) return (
     <div className="space-y-4">
@@ -63,15 +60,15 @@ function Schemes() {
     </div>
   );
 
-  if (done) return (
+  if (step >= steps.length && results) return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold">{t("You may be eligible for", "आप इनके पात्र हो सकते हैं")}</h1>
       <div className="grid grid-cols-3 gap-2 rounded-2xl bg-muted p-1">
         {[["schemes", t("Schemes", "योजनाएं")], ["pensions", t("Pensions", "पेंशन")], ["scholarships", t("Scholarships", "छात्रवृत्ति")]].map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k!)} className={cn("rounded-xl py-2 font-semibold", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>{l} ({results[k!]!.length})</button>
+          <button key={k} onClick={() => setTab(k!)} className={cn("rounded-xl py-2 font-semibold", tab === k ? "bg-card shadow-sm" : "text-muted-foreground")}>{l} ({(results[k as keyof SchemeResult] ?? []).length})</button>
         ))}
       </div>
-      {results[tab]!.map((s) => (
+      {(results[tab as keyof SchemeResult] ?? []).map((s) => (
         <div key={s.name} className="rounded-3xl border bg-card p-5">
           <h2 className="text-xl font-bold">{s.name}</h2>
           <p className="mt-1 text-lg font-semibold text-primary">{s.benefit}</p>
@@ -80,7 +77,8 @@ function Schemes() {
         </div>
       ))}
       <button onClick={() => setStep(0)} className="w-full text-primary underline">{t("Edit my details", "मेरी जानकारी बदलें")}</button>
-      <p className="text-center text-xs text-muted-foreground">{t("Sample results — smart matching coming next.", "नमूना परिणाम — स्मार्ट मिलान जल्द आ रहा है।")}</p>
+      {(results[tab as keyof SchemeResult] ?? []).length === 0 && <p className="text-center text-muted-foreground">{t("Nothing found in this group.", "इस समूह में कुछ नहीं मिला।")}</p>}
+      <p className="text-center text-xs text-muted-foreground">{t("AI suggestions — always check the official website before applying.", "AI सुझाव — आवेदन से पहले आधिकारिक वेबसाइट जरूर देखें।")}</p>
     </div>
   );
 
@@ -101,9 +99,10 @@ function Schemes() {
           )}
         </div>
       ))}
+      {err && <p className="rounded-2xl bg-danger/10 p-4 text-danger">{err}</p>}
       <div className="flex gap-3 pt-2">
         {step > 0 && <button onClick={() => setStep(step - 1)} className="flex-1 rounded-2xl bg-secondary py-4 font-semibold">{t("Back", "वापस")}</button>}
-        <button onClick={() => setStep(step + 1)} className="flex-[2] rounded-2xl bg-primary py-4 text-lg font-semibold text-primary-foreground">{step === steps.length - 1 ? t("Show my schemes", "मेरी योजनाएं दिखाएं") : t("Next", "आगे")}</button>
+        <button onClick={() => (step === steps.length - 1 ? submit() : setStep(step + 1))} disabled={loading} className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-lg font-semibold text-primary-foreground">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : step === steps.length - 1 ? t("Show my schemes", "मेरी योजनाएं दिखाएं") : t("Next", "आगे")}</button>
       </div>
     </div>
   );

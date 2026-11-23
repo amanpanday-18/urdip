@@ -83,9 +83,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kisan Mitra" },
+      { title: "URDIP" },
       { name: "description", content: "Plant doctor, government schemes and product safety scanner." },
-      { property: "og:title", content: "Kisan Mitra" },
+      { property: "og:title", content: "URDIP" },
       { property: "og:description", content: "Plant doctor, government schemes and product safety scanner." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

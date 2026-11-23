@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, FlaskConical, Leaf, Loader2, ShieldCheck, Sprout } from "lucide-react";
+import { AlertTriangle, Camera, FlaskConical, Leaf, Loader2, ShieldCheck, Sprout } from "lucide-react";
 import { useState } from "react";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { useLang } from "@/lib/i18n";
@@ -18,6 +18,8 @@ export const Route = createFileRoute("/agro")({
   component: Agro,
 });
 
+const CROPS: [string, string][] = [["Tomato","टमाटर"],["Potato","आलू"],["Rice","धान"],["Wheat","गेहूं"],["Cotton","कपास"],["Chilli","मिर्च"],["Brinjal","बैंगन"],["Sugarcane","गन्ना"],["Maize","मक्का"],["Onion","प्याज"]];
+
 function Agro() {
   const { t, lang } = useLang();
   const diagnose = useServerFn(diagnosePlant);
@@ -25,10 +27,11 @@ function Agro() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [res, setRes] = useState<PlantResult | null>(null);
+  const [crop, setCrop] = useState("");
   const analyse = async () => {
     if (!img) return;
     setLoading(true); setErr(null);
-    try { setRes(await diagnose({ data: { image: img, lang } })); }
+    try { setRes(await diagnose({ data: { image: img, lang, ...(crop ? { crop } : {}) } })); }
     catch (e) { setErr(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); }
   };
@@ -36,6 +39,23 @@ function Agro() {
     <div className="space-y-5">
       <h1 className="text-3xl font-bold">{t("Plant Doctor", "पौधा डॉक्टर")}</h1>
       <PhotoPicker image={img} onPick={(u) => { setImg(u); setRes(null); setErr(null); }} hint={t("Take a clear photo of the affected leaf", "प्रभावित पत्ती की साफ फोटो लें")} />
+      <div className="rounded-3xl border bg-card p-4 text-sm">
+        <p className="mb-2 flex items-center gap-2 font-semibold"><Camera className="h-4 w-4 text-primary" /> {t("Tips for a correct result", "सही नतीजे के लिए सुझाव")}</p>
+        <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+          <li>{t("Go close — one sick leaf should fill the photo", "पास से लें — एक बीमार पत्ती पूरी फोटो में हो")}</li>
+          <li>{t("Use daylight, avoid shadow and glare", "दिन की रोशनी में लें, छाया और चमक से बचें")}</li>
+          <li>{t("Keep the phone steady so the photo is sharp", "फोन स्थिर रखें ताकि फोटो साफ आए")}</li>
+          <li>{t("Show the spots clearly; also try the leaf underside", "धब्बे साफ दिखाएं; पत्ती का निचला हिस्सा भी आज़माएं")}</li>
+        </ul>
+      </div>
+      <div>
+        <p className="mb-2 font-semibold">{t("Which crop? (optional)", "कौन सी फसल? (वैकल्पिक)")}</p>
+        <div className="flex flex-wrap gap-2">
+          {CROPS.map(([en, hi]) => (
+            <button key={en} onClick={() => { setCrop(crop === en ? "" : en); setRes(null); }} className={`rounded-full border px-3 py-1.5 text-sm ${crop === en ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>{t(en, hi)}</button>
+          ))}
+        </div>
+      </div>
       {img && !res && (
         <button onClick={analyse} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-soil py-4 text-lg font-semibold text-soil-foreground">
           {loading ? <><Loader2 className="h-5 w-5 animate-spin" /> {t("Analysing…", "जांच हो रही है…")}</> : t("Diagnose plant", "पौधे की जांच करें")}
@@ -66,6 +86,7 @@ function Result({ r }: { r: PlantResult }) {
           </div>
           <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{Math.round(r.confidence)}%</span>
         </div>
+        {r.confidence < 60 && <p className="mt-3 rounded-2xl bg-warn/10 p-3 text-sm">{t("Not very sure. Retake a closer, sharper photo in daylight for a better answer.", "पक्का नहीं है। बेहतर जवाब के लिए दिन की रोशनी में पास से साफ फोटो दोबारा लें।")}</p>}
       </div>
       {(r.symptoms.length > 0 || r.cause) && <Section icon={AlertTriangle} title={t("Symptoms & cause", "लक्षण और कारण")}><List items={r.symptoms} />{r.cause && <p className="mt-2 text-muted-foreground">{r.cause}</p>}</Section>}
       {r.medicines.length > 0 && <Section icon={FlaskConical} title={t("Medicines", "दवाइयां")}>

@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Shared app shell (nav, language toggle) lives in src/components/AppShell.tsx wrapped in __root; why: one layout for all pages.
+- Bilingual text uses useLang().t(en, hi) from src/lib/i18n.tsx; why: simple inline EN/HI without a library.

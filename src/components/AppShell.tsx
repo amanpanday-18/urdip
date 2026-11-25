@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Leaf, Landmark, ScanBarcode, Sprout } from "lucide-react";
+import { Home, Leaf, Landmark, ScanBarcode } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import urdipMark from "@/assets/urdip-mark.png.asset.json";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { lang, setLang, t } = useLang();
@@ -56,7 +57,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 function Brand() {
   return (
     <Link to="/" className="flex items-center gap-2">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Sprout className="h-5 w-5" /></span>
+      <img
+        src={urdipMark.url}
+        alt="URDIP logo: hands holding a sprout under the sun"
+        className="h-10 w-10 shrink-0 object-contain"
+      />
       <span className="font-display text-xl font-bold">URDIP</span>
     </Link>
   );

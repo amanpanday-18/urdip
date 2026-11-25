@@ -1,4 +1,4 @@
-import modelAsset from "@/assets/urdip_plant.onnx.asset.json";
+import modelAsset from "@/assets/urdip_plant_v2.onnx.asset.json";
 import classes from "./plant-classes.json";
 
 type Ort = typeof import("onnxruntime-web");
@@ -18,7 +18,7 @@ function load() {
 
 export const preloadPlantModel = () => { load().catch(() => {}); };
 
-/** Runs the trained 38-class model on a data URL. Returns readable label + confidence %. */
+/** Runs the trained 90-class model on a data URL. Returns readable label + confidence %. */
 export async function classifyPlant(dataUrl: string): Promise<{ label: string; confidence: number }> {
   const { ort, s } = await load();
   const img = new Image();

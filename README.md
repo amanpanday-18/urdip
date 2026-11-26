@@ -44,10 +44,20 @@ Sugarcane, Mango, Guava, Jamun, Tea, Pomegranate, Cucumber and Watermelon.
 
 | Version | Dataset | Images | Classes | Crops |
 | --- | --- | --- | --- | --- |
-| v1 (baseline) | Kaggle — *New Plant Diseases Dataset* (PlantVillage) | 54,000+ | 38 | 14 |
-| v2 (current) | Kaggle — *Leafy* dataset | 137,000+ | 90 | 27 |
+| v1 (baseline) | [Kaggle — *New Plant Diseases Dataset* (PlantVillage)](https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset) | 54,000+ | 38 | 14 |
+| v2 (current) | [Kaggle — *Leafy: plant pathology*](https://www.kaggle.com/datasets/ayyappaswamythati/leafy-plant-pathology) | 137,000+ | 90 | 27 |
 
 Both datasets are public, already split into train / validation / test folders.
+
+Downloaded straight into the Colab notebook with [`kagglehub`](https://github.com/Kaggle/kagglehub):
+
+```python
+import kagglehub
+# v1 baseline
+kagglehub.dataset_download("vipoooool/new-plant-diseases-dataset")
+# v2 current (27 crops, 90 disease classes)
+kagglehub.dataset_download("ayyappaswamythati/leafy-plant-pathology")
+```
 
 ### Training setup
 

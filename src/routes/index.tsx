@@ -1,52 +1,164 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Landmark, Leaf, ScanBarcode } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Leaf } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import urdipMark from "@/assets/urdip-mark.png.asset.json";
+
+const TEAM = [
+  { reg: "24BEY10038", name: "Aman Panday" },
+  { reg: "24MIP10143", name: "Somya Tiwari" },
+  { reg: "24BCE10080", name: "Pranav Kumar" },
+  { reg: "24BEY10178", name: "Himesh Jham" },
+  { reg: "24BCE11394", name: "Aarshi Jaiswal" },
+  { reg: "24MIM10067", name: "Suhana Bisht" },
+] as const;
+
+const WORDMARK = ["U", "R", "D", "I", "P"];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "URDIP — Farm, Schemes & Food Safety" },
-      { name: "description", content: "Diagnose plant diseases, find government schemes you qualify for, and check if food products are safe." },
-      { property: "og:title", content: "URDIP — Farm, Schemes & Food Safety" },
-      { property: "og:description", content: "Plant doctor, scheme finder and product safety scanner in one app." },
+      { title: "URDIP — Plant Doctor, Schemes & Food Safety" },
+      {
+        name: "description",
+        content:
+          "URDIP is a student-built app: diagnose crop disease from a photo, find government schemes you qualify for, and check whether a food product is safe.",
+      },
+      { property: "og:title", content: "URDIP — Plant Doctor, Schemes & Food Safety" },
+      {
+        property: "og:description",
+        content: "Built by a six-member student team under Dr. Velmurugan.",
+      },
     ],
   }),
   component: Index,
 });
 
-function Index() {
+export function Index() {
   const { t } = useLang();
-  const cards = [
-    { to: "/agro", icon: Leaf, cls: "bg-primary text-primary-foreground", title: t("Plant Doctor", "पौधा डॉक्टर"), desc: t("Photo of a sick plant → disease & medicine", "बीमार पौधे की फोटो → रोग और दवा") },
-    { to: "/schemes", icon: Landmark, cls: "bg-accent text-accent-foreground", title: t("Government Schemes", "सरकारी योजनाएं"), desc: t("Schemes, pensions & scholarships for you", "आपके लिए योजनाएं, पेंशन और छात्रवृत्ति") },
-    { to: "/scanner", icon: ScanBarcode, cls: "bg-soil text-soil-foreground", title: t("Product Scanner", "प्रोडक्ट स्कैनर"), desc: t("Is this food safe for you?", "क्या यह खाना आपके लिए सुरक्षित है?") },
-  ] as const;
+
   return (
-    <div className="space-y-6">
-      <section>
-        <p className="text-muted-foreground">{t("Namaste 🙏", "नमस्ते 🙏")}</p>
-        <h1 className="text-3xl font-bold md:text-4xl">{t("How can we help you today?", "आज हम आपकी क्या मदद करें?")}</h1>
+    <div className="space-y-5">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-3xl border bg-card px-5 py-12 text-center shadow-sm md:py-16">
+        <div
+          className="anim-spin-slow urdip-rays pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2"
+          aria-hidden
+        />
+        <div
+          className="anim-glow pointer-events-none absolute left-1/2 top-0 h-56 w-56 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in oklab, var(--accent) 75%, transparent), transparent 70%)",
+          }}
+          aria-hidden
+        />
+        <Leaf className="anim-float pointer-events-none absolute left-5 top-12 h-9 w-9 text-primary/20" aria-hidden />
+        <Leaf
+          className="anim-float pointer-events-none absolute right-6 top-24 h-7 w-7 text-primary/15"
+          style={{ animationDelay: "1.4s" }}
+          aria-hidden
+        />
+        <Leaf
+          className="anim-float pointer-events-none absolute bottom-10 left-10 h-6 w-6 text-accent-foreground/20"
+          style={{ animationDelay: "2.6s" }}
+          aria-hidden
+        />
+        <Leaf
+          className="anim-float pointer-events-none absolute bottom-16 right-12 h-8 w-8 text-primary/15"
+          style={{ animationDelay: "0.7s" }}
+          aria-hidden
+        />
+
+        <div className="relative">
+          <img
+            src={urdipMark.url}
+            alt="URDIP logo: hands holding a sprout under the sun"
+            className="anim-pop mx-auto h-24 w-24 object-contain md:h-28 md:w-28"
+          />
+
+          <h1 className="mt-4 font-display text-6xl font-bold tracking-tight md:text-8xl">
+            {WORDMARK.map((letter, i) => (
+              <span
+                key={letter + i}
+                className="anim-rise inline-block"
+                style={{ animationDelay: `${0.3 + i * 0.1}s` }}
+              >
+                {letter}
+              </span>
+            ))}
+          </h1>
+
+          <div
+            className="anim-grow mx-auto mt-5 h-px w-44 bg-gradient-to-r from-transparent via-primary to-transparent"
+            aria-hidden
+          />
+
+          <p
+            className="anim-rise mx-auto mt-5 max-w-md text-base text-muted-foreground md:text-lg"
+            style={{ animationDelay: "0.85s" }}
+          >
+            {t(
+              "A plant doctor, a government scheme finder and a food safety scanner — in one app for every Indian home.",
+              "पौधा डॉक्टर, सरकारī योजनā खोजक और खाने कī सुरक्षा स्कैनर — भāरत के हर घर के लिए एक ऐप में।",
+            )}
+          </p>
+        </div>
       </section>
-      <div className="grid gap-4">
-        {cards.map((c) => (
-          <Link key={c.to} to={c.to} className={`group flex items-center gap-4 rounded-3xl p-5 shadow-sm transition-transform hover:-translate-y-0.5 ${c.cls}`}>
-            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-background/20"><c.icon className="h-8 w-8" /></span>
-            <span className="flex-1">
-              <span className="block font-display text-xl font-bold">{c.title}</span>
-              <span className="block opacity-90">{c.desc}</span>
-            </span>
-            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
-          </Link>
-        ))}
-      </div>
-      <section className="rounded-3xl border bg-card p-5">
-        <h2 className="mb-3 text-lg font-bold">{t("Recent activity", "हाल की गतिविधि")}</h2>
-        <ul className="divide-y">
-          <li className="flex justify-between py-2"><span>🍅 {t("Tomato — Early Blight", "टमाटर — अगेती झुलसा")}</span><span className="text-sm text-muted-foreground">2d</span></li>
-          <li className="flex justify-between py-2"><span>🍪 {t("Biscuit — Moderate", "बिस्कुट — मध्यम")}</span><span className="text-sm text-muted-foreground">4d</span></li>
-          <li className="flex justify-between py-2"><span>🏛️ {t("6 schemes matched", "6 योजनाएं मिलीं")}</span><span className="text-sm text-muted-foreground">1w</span></li>
+
+      {/* Supervisor */}
+      <section
+        className="anim-rise rounded-3xl border bg-card p-5 shadow-sm"
+        style={{ animationDelay: "1s" }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {t("Project Supervisor", "प्रोजेक्ट पर्यवेक्षक")}
+        </p>
+        <p className="mt-1 font-display text-2xl font-bold">Dr. Velmurugan</p>
+      </section>
+
+      {/* Team */}
+      <section
+        className="anim-rise rounded-3xl border bg-card p-5 shadow-sm"
+        style={{ animationDelay: "1.15s" }}
+      >
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
+          <Leaf className="h-5 w-5 text-primary" />
+          {t("Built by", "बनाने वāलī टीम")}
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {TEAM.map((member, i) => (
+            <li
+              key={member.reg}
+              className="anim-rise flex items-center gap-3 rounded-2xl border bg-background p-3 transition-transform hover:-translate-y-0.5"
+              style={{ animationDelay: `${1.25 + i * 0.1}s` }}
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
+                {initials(member.name)}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-semibold">{member.name}</span>
+                <span className="block text-sm text-muted-foreground">{member.reg}</span>
+              </span>
+            </li>
+          ))}
         </ul>
       </section>
+
+      <p
+        className="anim-fade pt-1 text-center text-sm text-muted-foreground"
+        style={{ animationDelay: "2s" }}
+      >
+        {t("A student innovation project · 2026", "एक छाव-नवāचāर परियोजनā · 2026")}
+      </p>
     </div>
   );
 }

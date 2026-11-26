@@ -15,7 +15,7 @@ describe("Home credits screen", () => {
       "24MIP10143",
       "24BCE10080",
       "24BEY10178",
-      "24BCE11394",
+      "24BCE11393",
       "24MIM10067",
     ]) {
       expect(screen.getByText(reg)).toBeInTheDocument();

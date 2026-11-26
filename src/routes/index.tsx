@@ -8,7 +8,7 @@ const TEAM = [
   { reg: "24MIP10143", name: "Somya Tiwari" },
   { reg: "24BCE10080", name: "Pranav Kumar" },
   { reg: "24BEY10178", name: "Himesh Jham" },
-  { reg: "24BCE11394", name: "Aarshi Jaiswal" },
+  { reg: "24BCE11393", name: "Aarshi Jaiswal" },
   { reg: "24MIM10067", name: "Suhana Bisht" },
 ] as const;
 
